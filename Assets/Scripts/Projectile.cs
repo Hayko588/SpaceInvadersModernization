@@ -4,47 +4,81 @@ using System.Collections.Generic;
 using UnityEngine;
 using Zenject;
 
+public enum ProjectileOwner {
+	Player,
+	Enemy
+}
+
 public class Projectile : MonoBehaviour {
-    public class Pool : MemoryPool<Projectile> {
-        
-    }
-    
-    [SerializeField] private float _speed = 0.0f;
-    [SerializeField] private Vector3 _direction = Vector3.up;
-    private int _damage = 1;
+	public class Pool : MemoryPool<Projectile> {
+		protected override void OnSpawned(Projectile item) {
+			item.gameObject.SetActive(true);
+		}
+		protected override void OnDespawned(Projectile item) {
+			item.gameObject.SetActive(false);
+		}
+	}
 
-    public void Init(int damage) {
-        _damage = damage;
-    }
+	[SerializeField] private TrailRenderer _trailRenderer;
+	[SerializeField] private float _playerProjectileSpeed = 5.0f;
+	[SerializeField] private float _enemyProjectileSpeed = 3.5f;
+	[SerializeField] private Gradient _playerProjectileColor;
+	[SerializeField] private Gradient _enemyProjectileColor;
 
-    void Update() {
+	private int _damage = 1;
+	private float _speed = 0.0f;
+	private Vector3 _direction;
+	private Action<Projectile> _onExplosion;
 
-        var p = transform.position;
-        p += _direction * (_speed * Time.deltaTime);
-        transform.position = p;
-    }
+	public ProjectileOwner Owner { get; private set; }
 
-    private void OnTriggerEnter(Collider other) {
+	public void Init(ProjectileOwner projectileOwner, Vector3 position, Action<Projectile> onExplosion) {
+		Owner = projectileOwner;
+		_onExplosion = onExplosion;
+		switch (Owner) {
+			case ProjectileOwner.Player:
+				_direction = Vector3.up;
+				_speed = _playerProjectileSpeed;
+				_trailRenderer.colorGradient = _playerProjectileColor;
+				break;
+			case ProjectileOwner.Enemy:
+				_direction = Vector3.down;
+				_speed = _enemyProjectileSpeed;
+				_trailRenderer.colorGradient = _enemyProjectileColor;
+				break;
+		}
+		transform.position = position;
+		gameObject.SetActive(true);
+	}
 
-        bool destroy = false;
-        var enemy = other.GetComponent<Enemy>();
-        if (enemy != null) {
+	void Update() {
 
-            enemy.Hit(_damage);
-            destroy = true;
-        }
-        else {
-            var player = other.GetComponent<Player>();
-            if (player != null) {
+		var p = transform.position;
+		p += _direction * (_speed * Time.deltaTime);
+		transform.position = p;
+	}
 
-                player.Hit();
-                destroy = true;
-            }
-        }
+	private void OnTriggerEnter(Collider other) {
 
-        if (destroy) {
-            gameObject.SetActive(false);
-            Destroy(gameObject);
-        }
-    }
+		bool destroy = false;
+		var enemy = other.GetComponent<Enemy>();
+		if (enemy != null) {
+
+			enemy.Hit(_damage);
+			destroy = true;
+		}
+		else {
+			var player = other.GetComponent<Player>();
+			if (player != null) {
+
+				player.Hit();
+				destroy = true;
+			}
+		}
+
+		if (destroy) {
+			gameObject.SetActive(false);
+			_onExplosion?.Invoke(this);
+		}
+	}
 }

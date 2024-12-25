@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -6,82 +7,79 @@ using Object = UnityEngine.Object;
 
 public class Player : MonoBehaviour {
 
-    public event System.Action OnDie;
-    
-    [SerializeField] private GameObject _prefabExplosion;
-    [SerializeField] private Transform _projectileSpawnLocation;
+	public event System.Action OnDie;
 
-    [Inject] private readonly Projectile.Pool _projectilePool;
-    
-    private int _health = 3;
-    
-    private Rigidbody _body = null;
-    
-    private Vector2 _lastInput;
-    private bool _hasInput = false;
-    
-    float _fireInterval = 0.4f;
-    private float _fireTimer = 0.0f;
+	[SerializeField] private GameObject _prefabExplosion;
+	[SerializeField] private Transform _projectileSpawnLocation;
 
-    private void Awake() {
-        _body = GetComponent<Rigidbody>();
-    }
+	private int _health = 3;
 
-    void Start() {
-        Object.FindObjectOfType<GameplayUI>(true).UpdateHealth(_health);
-        Object.FindObjectOfType<GameOverUI>(true).Close();
-    }
+	private Rigidbody _body = null;
 
-    private void Update() {
+	private Vector2 _lastInput;
+	private bool _hasInput = false;
 
-        if (Input.GetMouseButtonDown(0)) _hasInput = true;
-        if (Input.GetMouseButtonUp(0)) _hasInput = false;
-        if (Input.GetMouseButton(0)) {
-            _lastInput = Input.mousePosition;
-        }
+	float _fireInterval = 0.4f;
+	private float _fireTimer = 0.0f;
+
+	public event Action<ProjectileOwner, Vector3> OnLaunchProjectile; 
+	
+	private void Awake() {
+		_body = GetComponent<Rigidbody>();
+	}
+
+	void Start() {
+		Object.FindObjectOfType<GameplayUI>(true).UpdateHealth(_health);
+		Object.FindObjectOfType<GameOverUI>(true).Close();
+	}
+
+	private void Update() {
+
+		if (Input.GetMouseButtonDown(0)) _hasInput = true;
+		if (Input.GetMouseButtonUp(0)) _hasInput = false;
+		if (Input.GetMouseButton(0)) {
+			_lastInput = Input.mousePosition;
+		}
 
 
-        _fireTimer += Time.deltaTime;
-        if (_fireTimer >= _fireInterval) {
+		_fireTimer += Time.deltaTime;
+		if (_fireTimer >= _fireInterval) {
+			OnLaunchProjectile?.Invoke(ProjectileOwner.Player, _projectileSpawnLocation.position);
+			_fireTimer -= _fireInterval;
+		}
+	}
 
-            var go = _projectilePool.Spawn();
-            go.gameObject.SetActive(true);
-            go.transform.position = _projectileSpawnLocation.position;
-            _fireTimer -= _fireInterval;
-        }
-    }
+	public void Hit() {
 
-    public void Hit() {
+		_health--;
 
-        _health--;
+		Object.FindObjectOfType<GameplayUI>(true).UpdateHealth(_health);
 
-        Object.FindObjectOfType<GameplayUI>(true).UpdateHealth(_health);
+		if (_health <= 0) {
+			Object.FindObjectOfType<GameOverUI>(true).Open();
+			var fx = Instantiate(_prefabExplosion);
+			fx.transform.position = transform.position;
+			Destroy(gameObject);
+			OnDie?.Invoke();
+			return;
+		}
+	}
 
-        if (_health <= 0) {
-            Object.FindObjectOfType<GameOverUI>(true).Open();
-            var fx = Instantiate(_prefabExplosion);
-            fx.transform.position = transform.position;
-            Destroy(gameObject);
-            OnDie?.Invoke();
-            return;
-        }
-    }
+	private void FixedUpdate() {
+		if (_hasInput) {
+			Vector2 pos = _lastInput;
+			const float playAreaMin = -3f;
+			const float playAreaMax = 3f;
 
-    private void FixedUpdate() {
-        if (_hasInput) {
-            Vector2 pos = _lastInput;
-            const float playAreaMin = -3f;
-            const float playAreaMax = 3f;
+			var p = pos.x / Screen.width;
+			_body.MovePosition(new Vector3(Mathf.Lerp(playAreaMin, playAreaMax, p), 0.0f, 0.0f));
+		}
+	}
 
-            var p = pos.x / Screen.width;
-            _body.MovePosition(new Vector3(Mathf.Lerp(playAreaMin, playAreaMax, p), 0.0f, 0.0f));
-        }
-    }
+	public void AddPowerUp(PowerUp.PowerUpType type) {
 
-    public void AddPowerUp(PowerUp.PowerUpType type) {
-
-        if (type == PowerUp.PowerUpType.FIRE_RATE) {
-            _fireInterval *= 0.9f;
-        }
-    }
+		if (type == PowerUp.PowerUpType.FIRE_RATE) {
+			_fireInterval *= 0.9f;
+		}
+	}
 }

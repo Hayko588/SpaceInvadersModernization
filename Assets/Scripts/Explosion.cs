@@ -6,9 +6,11 @@ namespace DefaultNamespace {
 		public class Pool : MemoryPool<Explosion> {
 			protected override void OnSpawned(Explosion item) {
 				item.Explode();
+				item.gameObject.SetActive(true);
 			}
 			protected override void OnDespawned(Explosion item) {
 				item.Stop();
+				item.gameObject.SetActive(false);
 			}
 		}
 
