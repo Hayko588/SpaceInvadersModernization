@@ -43,7 +43,7 @@ GameObject:
   - component: {fileID: 3599859123977255695}
   - component: {fileID: 6266399861305442779}
   - component: {fileID: 7544558003137155504}
-  - component: {fileID: 3738738063419362240}
+  - component: {fileID: 937506834518239741}
   m_Layer: 7
   m_Name: Enemy
   m_TagString: Untagged
@@ -106,14 +106,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: efb2e20212d15094583a889e1f3367da, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _prefabExplosion: {fileID: 7302861985510318563, guid: b9fe2c8d722fc9841a6db269ef3f3d04,
-    type: 3}
   _prefabPowerUp: {fileID: 3322102763667225299, guid: 195424833b2e94e4caa204a418379bf2,
     type: 3}
   _prefabProjectile: {fileID: 177452054660736933, guid: 1dd0ab6fc9ba1d746999bdd9187ab64b,
     type: 3}
---- !u!65 &3738738063419362240
-BoxCollider:
+  _body: {fileID: 6266399861305442779}
+--- !u!135 &937506834518239741
+SphereCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -131,7 +130,7 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 2.3916802, y: 0.5, z: 1}
+  m_Radius: 0.75
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!1001 &6292652592530565719
 PrefabInstance:
