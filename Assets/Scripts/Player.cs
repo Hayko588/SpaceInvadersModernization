@@ -26,8 +26,8 @@ public class Player : MonoBehaviour {
     }
 
     void Start() {
-        Object.FindObjectOfType<GameplayUi>(true).UpdateHealth(_health);
-        Object.FindObjectOfType<GameOverUi>(true).Close();
+        Object.FindObjectOfType<GameplayUI>(true).UpdateHealth(_health);
+        Object.FindObjectOfType<GameOverUI>(true).Close();
     }
 
     private void Update() {
@@ -52,10 +52,10 @@ public class Player : MonoBehaviour {
 
         _health--;
 
-        Object.FindObjectOfType<GameplayUi>(true).UpdateHealth(_health);
+        Object.FindObjectOfType<GameplayUI>(true).UpdateHealth(_health);
 
         if (_health <= 0) {
-            Object.FindObjectOfType<GameOverUi>(true).Open();
+            Object.FindObjectOfType<GameOverUI>(true).Open();
             var fx = Instantiate(_prefabExplosion);
             fx.transform.position = transform.position;
             Destroy(gameObject);
