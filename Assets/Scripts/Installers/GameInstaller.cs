@@ -1,3 +1,4 @@
+using DefaultNamespace;
 using Zenject;
 using UnityEngine;
 
@@ -7,6 +8,9 @@ namespace Installers {
 		[SerializeField] private GameOverUI _gameOverUi;
 		[SerializeField] private GameController _gameController;
 		[SerializeField] private Player _player;
+		[SerializeField] private Enemy _enemyPrefab;
+		[SerializeField] private Explosion _explosionPrefab;
+		[SerializeField] private Projectile _projectilePrefab;
 
 		public override void InstallBindings() {
 			Container
@@ -28,6 +32,18 @@ namespace Installers {
 				.FromInstance(_player)
 				.AsSingle()
 				.NonLazy();
+			Container
+				.BindMemoryPool<Enemy, Enemy.Pool>()
+				.FromComponentInNewPrefab(_enemyPrefab)
+				.UnderTransformGroup("Enemies");
+			Container
+				.BindMemoryPool<Explosion, Explosion.Pool>()
+				.FromComponentInNewPrefab(_explosionPrefab)
+				.UnderTransformGroup("Explosions");
+			Container
+				.BindMemoryPool<Projectile, Projectile.Pool>()
+				.FromComponentInNewPrefab(_projectilePrefab)
+				.UnderTransformGroup("Projectiles");
 		}
 	}
 }
