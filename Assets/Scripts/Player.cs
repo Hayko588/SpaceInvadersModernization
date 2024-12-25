@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Zenject;
 using Object = UnityEngine.Object;
 
 public class Player : MonoBehaviour {
@@ -8,9 +9,10 @@ public class Player : MonoBehaviour {
     public event System.Action OnDie;
     
     [SerializeField] private GameObject _prefabExplosion;
-    [SerializeField] private Projectile _prefabProjectile;
     [SerializeField] private Transform _projectileSpawnLocation;
 
+    [Inject] private readonly Projectile.Pool _projectilePool;
+    
     private int _health = 3;
     
     private Rigidbody _body = null;
@@ -42,7 +44,8 @@ public class Player : MonoBehaviour {
         _fireTimer += Time.deltaTime;
         if (_fireTimer >= _fireInterval) {
 
-            var go = Instantiate(_prefabProjectile);
+            var go = _projectilePool.Spawn();
+            go.gameObject.SetActive(true);
             go.transform.position = _projectileSpawnLocation.position;
             _fireTimer -= _fireInterval;
         }

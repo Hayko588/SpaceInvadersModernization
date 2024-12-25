@@ -2,8 +2,13 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Zenject;
 
 public class Projectile : MonoBehaviour {
+    public class Pool : MemoryPool<Projectile> {
+        
+    }
+    
     [SerializeField] private float _speed = 0.0f;
     [SerializeField] private Vector3 _direction = Vector3.up;
     private int _damage = 1;
@@ -38,6 +43,7 @@ public class Projectile : MonoBehaviour {
         }
 
         if (destroy) {
+            gameObject.SetActive(false);
             Destroy(gameObject);
         }
     }
