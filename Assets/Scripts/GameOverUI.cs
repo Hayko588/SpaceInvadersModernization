@@ -1,16 +1,18 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class GameOverUI : MonoBehaviour {
-	public void Open() {
-		gameObject.SetActive(true);
-	}
+namespace SpaceInvaders.UI {
+	public class GameOverUI : MonoBehaviour {
+		public void Open() {
+			gameObject.SetActive(true);
+		}
 
-	public void Close() {
-		gameObject.SetActive(false);
-	}
+		public void Close() {
+			gameObject.SetActive(false);
+		}
 
-	public void OnRetryButton() {
-		SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+		public void OnRetryButton() {
+			SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+		}
 	}
 }

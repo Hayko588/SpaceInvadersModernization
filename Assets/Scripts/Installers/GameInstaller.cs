@@ -1,8 +1,9 @@
-using DefaultNamespace;
+using SpaceInvaders.Services;
+using SpaceInvaders.UI;
 using Zenject;
 using UnityEngine;
 
-namespace Installers {
+namespace SpaceInvaders.Installers {
 	public class GameInstaller : MonoInstaller {
 		[SerializeField] private GameplayUI _gamePlayUi;
 		[SerializeField] private GameOverUI _gameOverUi;
@@ -44,6 +45,9 @@ namespace Installers {
 				.BindMemoryPool<Projectile, Projectile.Pool>()
 				.FromComponentInNewPrefab(_projectilePrefab)
 				.UnderTransformGroup("Projectiles");
+			Container
+				.BindInterfacesAndSelfTo<PoolService>()
+				.AsSingle();
 		}
 	}
 }

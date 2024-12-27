@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using UnityEngine;
 using Zenject;
 
-namespace DefaultNamespace {
+namespace SpaceInvaders {
 	public class Explosion : MonoBehaviour, IPoolable {
 		public class Pool : MemoryPool<Explosion> {
 		}
@@ -13,7 +13,8 @@ namespace DefaultNamespace {
 
 		private Action<Explosion> _despawn;
 
-		public void Init(Action<Explosion> despawn) {
+		public void Init(Vector3 position, Action<Explosion> despawn) {
+			transform.position = position;
 			_despawn = despawn;
 		}
 
