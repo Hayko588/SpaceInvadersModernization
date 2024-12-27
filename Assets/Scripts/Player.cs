@@ -5,36 +5,33 @@ using UnityEngine;
 using Zenject;
 using Object = UnityEngine.Object;
 
+[RequireComponent(typeof(Rigidbody))]
 public class Player : MonoBehaviour {
-
-	public event System.Action OnDie;
-
-	[SerializeField] private GameObject _prefabExplosion;
 	[SerializeField] private Transform _projectileSpawnLocation;
+	[SerializeField] private Rigidbody _body;
 
 	private int _health = 3;
-
-	private Rigidbody _body = null;
-
 	private Vector2 _lastInput;
 	private bool _hasInput = false;
 
 	float _fireInterval = 0.4f;
 	private float _fireTimer = 0.0f;
 
-	public event Action<ProjectileOwner, Vector3> OnLaunchProjectile; 
-	
-	private void Awake() {
-		_body = GetComponent<Rigidbody>();
-	}
+	private Action<int> _updateHealth;
+	private Action<ProjectileOwner, Vector3> _launchProjectile;
+	private Action _onDie;
 
-	void Start() {
-		Object.FindObjectOfType<GameplayUI>(true).UpdateHealth(_health);
-		Object.FindObjectOfType<GameOverUI>(true).Close();
+	public void Init(Action<int> updateHealth,
+		Action<ProjectileOwner, Vector3> launchProjectile,
+		Action onDie) {
+		_updateHealth = updateHealth;
+		_launchProjectile = launchProjectile;
+		_onDie = onDie;
+		
+		_updateHealth?.Invoke(_health);
 	}
 
 	private void Update() {
-
 		if (Input.GetMouseButtonDown(0)) _hasInput = true;
 		if (Input.GetMouseButtonUp(0)) _hasInput = false;
 		if (Input.GetMouseButton(0)) {
@@ -44,24 +41,17 @@ public class Player : MonoBehaviour {
 
 		_fireTimer += Time.deltaTime;
 		if (_fireTimer >= _fireInterval) {
-			OnLaunchProjectile?.Invoke(ProjectileOwner.Player, _projectileSpawnLocation.position);
+			_launchProjectile?.Invoke(ProjectileOwner.Player, _projectileSpawnLocation.position);
 			_fireTimer -= _fireInterval;
 		}
 	}
 
 	public void Hit() {
-
 		_health--;
-
-		Object.FindObjectOfType<GameplayUI>(true).UpdateHealth(_health);
+		_updateHealth?.Invoke(_health);
 
 		if (_health <= 0) {
-			Object.FindObjectOfType<GameOverUI>(true).Open();
-			var fx = Instantiate(_prefabExplosion);
-			fx.transform.position = transform.position;
-			Destroy(gameObject);
-			OnDie?.Invoke();
-			return;
+			_onDie?.Invoke();
 		}
 	}
 

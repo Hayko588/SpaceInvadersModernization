@@ -1,28 +1,42 @@
-﻿using UnityEngine;
+﻿using System;
+using System.Threading.Tasks;
+using UnityEngine;
 using Zenject;
 
 namespace DefaultNamespace {
-	public class Explosion : MonoBehaviour {
+	public class Explosion : MonoBehaviour, IPoolable {
 		public class Pool : MemoryPool<Explosion> {
-			protected override void OnSpawned(Explosion item) {
-				item.Explode();
-				item.gameObject.SetActive(true);
-			}
-			protected override void OnDespawned(Explosion item) {
-				item.Stop();
-				item.gameObject.SetActive(false);
-			}
 		}
 
 		[SerializeField] private ParticleSystem _particleSystem;
+		[SerializeField] private int _delay = 1000;
 
-		private void Explode() {
+		private Action<Explosion> _despawn;
+
+		public void Init(Action<Explosion> despawn) {
+			_despawn = despawn;
+		}
+
+		private async void Explode() {
 			_particleSystem.Play();
+			await Task.Delay(_delay);
+			_despawn?.Invoke(this);
 		}
 
 		private void Stop() {
-			_particleSystem.Stop();
-			_particleSystem.Clear();
+			if (_particleSystem) {
+				_particleSystem.Stop();
+				_particleSystem.Clear();
+			}
+		}
+
+		public void OnSpawned() {
+			Explode();
+			gameObject.SetActive(true);
+		}
+		public void OnDespawned() {
+			Stop();
+			gameObject.SetActive(false);
 		}
 	}
 }

@@ -47,11 +47,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2500da5480f21a64cb558d88e3420fc0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _prefabExplosion: {fileID: 7302861985510318563, guid: b9fe2c8d722fc9841a6db269ef3f3d04,
-    type: 3}
-  _prefabProjectile: {fileID: 177452054660736933, guid: 4e9b0c775b3565f4cb2ec3ed48ebcfad,
-    type: 3}
   _projectileSpawnLocation: {fileID: 8914618954283462440}
+  _body: {fileID: 3346286131653351727}
 --- !u!54 &3346286131653351727
 Rigidbody:
   m_ObjectHideFlags: 0

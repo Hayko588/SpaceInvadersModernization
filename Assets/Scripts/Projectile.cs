@@ -9,14 +9,8 @@ public enum ProjectileOwner {
 	Enemy
 }
 
-public class Projectile : MonoBehaviour {
+public class Projectile : MonoBehaviour, IPoolable {
 	public class Pool : MemoryPool<Projectile> {
-		protected override void OnSpawned(Projectile item) {
-			item.gameObject.SetActive(true);
-		}
-		protected override void OnDespawned(Projectile item) {
-			item.gameObject.SetActive(false);
-		}
 	}
 
 	[SerializeField] private TrailRenderer _trailRenderer;
@@ -24,17 +18,20 @@ public class Projectile : MonoBehaviour {
 	[SerializeField] private float _enemyProjectileSpeed = 3.5f;
 	[SerializeField] private Gradient _playerProjectileColor;
 	[SerializeField] private Gradient _enemyProjectileColor;
+	[SerializeField] private float _lifetime = 5f;
 
 	private int _damage = 1;
 	private float _speed = 0.0f;
+	private float _currentLifetime;
 	private Vector3 _direction;
-	private Action<Projectile> _onExplosion;
+	private Action<Projectile> _despawn;
 
 	public ProjectileOwner Owner { get; private set; }
 
-	public void Init(ProjectileOwner projectileOwner, Vector3 position, Action<Projectile> onExplosion) {
+	public void Init(ProjectileOwner projectileOwner, Vector3 position, Action<Projectile> despawn) {
 		Owner = projectileOwner;
-		_onExplosion = onExplosion;
+		_despawn = despawn;
+		_currentLifetime = _lifetime;
 		switch (Owner) {
 			case ProjectileOwner.Player:
 				_direction = Vector3.up;
@@ -48,37 +45,46 @@ public class Projectile : MonoBehaviour {
 				break;
 		}
 		transform.position = position;
-		gameObject.SetActive(true);
 	}
 
-	void Update() {
-
+	private void Update() {
 		var p = transform.position;
 		p += _direction * (_speed * Time.deltaTime);
 		transform.position = p;
+		_currentLifetime -= Time.deltaTime;
+		if (_currentLifetime <= 0f) {
+			_despawn?.Invoke(this);
+		}
 	}
 
 	private void OnTriggerEnter(Collider other) {
-
 		bool destroy = false;
-		var enemy = other.GetComponent<Enemy>();
-		if (enemy != null) {
-
-			enemy.Hit(_damage);
-			destroy = true;
-		}
-		else {
-			var player = other.GetComponent<Player>();
-			if (player != null) {
-
-				player.Hit();
-				destroy = true;
-			}
+		switch (Owner) {
+			case ProjectileOwner.Player:
+				var enemy = other.GetComponent<Enemy>();
+				if (enemy != null) {
+					enemy.Hit(_damage);
+					destroy = true;
+				}
+				break;
+			case ProjectileOwner.Enemy:
+				var player = other.GetComponent<Player>();
+				if (player != null) {
+					player.Hit();
+					destroy = true;
+				}
+				break;
 		}
 
 		if (destroy) {
-			gameObject.SetActive(false);
-			_onExplosion?.Invoke(this);
+			_despawn?.Invoke(this);
 		}
+	}
+	
+	public void OnDespawned() {
+		gameObject.SetActive(false);
+	}
+	public void OnSpawned() {
+		gameObject.SetActive(true);
 	}
 }
