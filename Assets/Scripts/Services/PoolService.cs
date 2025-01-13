@@ -5,28 +5,22 @@ using Zenject;
 
 namespace SpaceInvaders.Services {
 	public class PoolService {
-		private readonly HashSet<Enemy> _enemies = new();
-		private readonly HashSet<Projectile> _projectiles = new();
-		private readonly HashSet<Explosion> _explosions = new();
-
 		[Inject] private readonly Enemy.Pool _enemyPool;
 		[Inject] private readonly Projectile.Pool _projectilePool;
 		[Inject] private readonly Explosion.Pool _explosionPool;
 
-		public void SpawnExplosion(Vector3 position, Action<Explosion> _onDestroy) {
+		public void SpawnExplosion(Vector3 position) {
 			var ex = _explosionPool.Spawn();
-			ex.Init(position, _onDestroy + DespawnExplosion);
-			_explosions.Add(ex);
+			ex.Init(position, DespawnExplosion);
 		}
 
 		public void DespawnExplosion(Explosion explosion) {
 			_explosionPool.Despawn(explosion);
 		}
 
-		public void SpawnProjectile(ProjectileOwner owner, Vector3 position, Action<Projectile> onDestroy) {
-			var p = _projectilePool.Spawn();
-			p.Init(owner, position, onDestroy + DespawnProjectile);
-			_projectiles.Add(p);
+		public void SpawnProjectile(ProjectileOwner owner, Vector3 position) {
+			var p = _projectilePool.Spawn(owner, position);
+			p.Init(owner, position, DespawnProjectile);
 		}
 
 		public void DespawnProjectile(Projectile projectile) {
@@ -34,20 +28,11 @@ namespace SpaceInvaders.Services {
 		}
 
 		public void SpawnEnemy(Vector3 position, Action<Enemy> onDestroy) {
-			var e = _enemyPool.Spawn();
-			e.transform.position = position;
-			if (!_enemies.Contains(e)) {
-				e.LaunchProjectile = SpawnProjectile;
-				e.SpawnExplosion = SpawnExplosion;
-				e.OnDestroy = enemy => {
-					onDestroy?.Invoke(enemy); 
-					DespawnEnemy(enemy);
-				};
-			}
-			_enemies.Add(e);
+			var e = _enemyPool.Spawn(position);
+			e.Init(this);
 		}
 
-		private void DespawnEnemy(Enemy enemy) {
+		public void DespawnEnemy(Enemy enemy) {
 			_enemyPool.Despawn(enemy);
 		}
 	}

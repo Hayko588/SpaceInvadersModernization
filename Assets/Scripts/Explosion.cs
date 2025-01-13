@@ -4,8 +4,14 @@ using UnityEngine;
 using Zenject;
 
 namespace SpaceInvaders {
-	public class Explosion : MonoBehaviour, IPoolable {
-		public class Pool : MemoryPool<Explosion> {
+	public class Explosion : MonoBehaviour {
+		public class Pool : MonoMemoryPool<Explosion> {
+			protected override void OnSpawned(Explosion item) {
+				item.Explode();
+			}
+			protected override void OnDespawned(Explosion item) {
+				item.Stop();
+			}
 		}
 
 		[SerializeField] private ParticleSystem _particleSystem;
@@ -29,15 +35,6 @@ namespace SpaceInvaders {
 				_particleSystem.Stop();
 				_particleSystem.Clear();
 			}
-		}
-
-		public void OnSpawned() {
-			Explode();
-			gameObject.SetActive(true);
-		}
-		public void OnDespawned() {
-			Stop();
-			gameObject.SetActive(false);
 		}
 	}
 }

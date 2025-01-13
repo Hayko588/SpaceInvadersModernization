@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using PrimeTween;
 using UnityEngine;
 using Zenject;
 
@@ -10,8 +11,11 @@ namespace SpaceInvaders {
 		Enemy
 	}
 
-	public class Projectile : MonoBehaviour, IPoolable {
-		public class Pool : MemoryPool<Projectile> {
+	public class Projectile : MonoBehaviour {
+		public class Pool : MonoMemoryPool<ProjectileOwner, Vector3, Projectile> {
+			protected override void Reinitialize(ProjectileOwner owner, Vector3 pos, Projectile item) {
+				item.Init(owner, pos, Despawn);
+			}
 		}
 
 		[SerializeField] private TrailRenderer _trailRenderer;
@@ -26,7 +30,7 @@ namespace SpaceInvaders {
 		private float _currentLifetime;
 		private Vector3 _direction;
 		private Action<Projectile> _despawn;
-		private bool _isStopped;
+		private Tween _tween;
 
 		public ProjectileOwner Owner { get; private set; }
 
@@ -47,22 +51,12 @@ namespace SpaceInvaders {
 					break;
 			}
 			transform.position = position;
-			_isStopped = false;
+			Run();
 		}
 
-
-		private void Update() {
-			if (_isStopped) {
-				return;
-			}
-			var p = transform.position;
-			p += _direction * (_speed * Time.deltaTime);
-			transform.position = p;
-			_currentLifetime -= Time.deltaTime;
-			if (_currentLifetime <= 0f) {
-				_despawn?.Invoke(this);
-				_isStopped = true;
-			}
+		private void Run() {
+			_tween = Tween.PositionY(transform, (20 * _direction).y, 20f / _speed, Ease.Linear);
+			_tween.OnComplete(() => _despawn?.Invoke(this));
 		}
 
 		private void OnTriggerEnter(Collider other) {
@@ -85,15 +79,9 @@ namespace SpaceInvaders {
 			}
 
 			if (destroy) {
+				_tween.Stop();
 				_despawn?.Invoke(this);
 			}
-		}
-
-		public void OnDespawned() {
-			gameObject.SetActive(false);
-		}
-		public void OnSpawned() {
-			gameObject.SetActive(true);
 		}
 	}
 }

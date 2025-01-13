@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using SpaceInvaders.Services;
 using UnityEngine;
 using Zenject;
 using Object = UnityEngine.Object;
@@ -15,21 +16,16 @@ namespace SpaceInvaders {
 		private Vector2 _lastInput;
 		private bool _hasInput = false;
 
-		float _fireInterval = 0.4f;
+		private float _fireInterval = 0.4f;
 		private float _fireTimer = 0.0f;
+		private PoolService _poolService;
 
-		private Action<int> _updateHealth;
-		private Action<ProjectileOwner, Vector3> _launchProjectile;
-		private Action _onDie;
+		public event Action OnDie;
+		public event Action<int> UpdateHealth;
 
-		public void Init(Action<int> updateHealth,
-			Action<ProjectileOwner, Vector3> launchProjectile,
-			Action onDie) {
-			_updateHealth = updateHealth;
-			_launchProjectile = launchProjectile;
-			_onDie = onDie;
-
-			_updateHealth?.Invoke(_health);
+		public void Init(PoolService poolService) {
+			_poolService = poolService;
+			UpdateHealth?.Invoke(_health);
 		}
 
 		private void Update() {
@@ -39,20 +35,19 @@ namespace SpaceInvaders {
 				_lastInput = Input.mousePosition;
 			}
 
-
 			_fireTimer += Time.deltaTime;
 			if (_fireTimer >= _fireInterval) {
-				_launchProjectile?.Invoke(ProjectileOwner.Player, _projectileSpawnLocation.position);
+				_poolService.SpawnProjectile(ProjectileOwner.Player, _projectileSpawnLocation.position);
 				_fireTimer -= _fireInterval;
 			}
 		}
 
 		public void Hit() {
 			_health--;
-			_updateHealth?.Invoke(_health);
+			UpdateHealth?.Invoke(_health);
 
 			if (_health <= 0) {
-				_onDie?.Invoke();
+				OnDie?.Invoke();
 			}
 		}
 
@@ -68,7 +63,6 @@ namespace SpaceInvaders {
 		}
 
 		public void AddPowerUp(PowerUp.PowerUpType type) {
-
 			if (type == PowerUp.PowerUpType.FIRE_RATE) {
 				_fireInterval *= 0.9f;
 			}

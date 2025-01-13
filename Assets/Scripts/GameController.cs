@@ -12,9 +12,7 @@ namespace SpaceInvaders {
 		[SerializeField] private Player _player;
 		[SerializeField] private Vector3 _spawnPosition;
 		[SerializeField] private Vector3 _spawnOffsets;
-
 		[SerializeField] private float _enemySpawnInterval = 0.5f;
-
 
 		[Inject] private readonly PoolService _poolService;
 		[Inject] private readonly GameplayUI _gameplayUI;
@@ -28,7 +26,9 @@ namespace SpaceInvaders {
 		}
 
 		private void Start() {
-			_player.Init(UpdateHealth, SpawnProjectile, OnPlayerDie);
+			_player.Init(_poolService);
+			_player.OnDie += OnPlayerDie;
+			_player.UpdateHealth += UpdateHealth;
 			_running = true;
 		}
 
@@ -41,24 +41,20 @@ namespace SpaceInvaders {
 			}
 		}
 
+		private void OnDestroy() {
+			_player.OnDie -= OnPlayerDie;
+		}
+
 		private void UpdateHealth(int health) {
 			_gameplayUI.UpdateHealth(health);
 		}
 
 		private void SpawnExplosion(Vector3 position) {
-			_poolService.SpawnExplosion(position, DespawnExplosion);
-		}
-
-		private void DespawnExplosion(Explosion explosion) {
-			_poolService.DespawnExplosion(explosion);
+			_poolService.SpawnExplosion(position);
 		}
 
 		private void SpawnProjectile(ProjectileOwner owner, Vector3 position) {
-			_poolService.SpawnProjectile(owner, position, DespawnProjectile);
-		}
-
-		private void DespawnProjectile(Projectile projectile) {
-			_poolService.DespawnProjectile(projectile);
+			_poolService.SpawnProjectile(owner, position);
 		}
 
 		private void OnPlayerDie() {
@@ -76,9 +72,7 @@ namespace SpaceInvaders {
 		}
 
 		private void SpawnEnemy() {
-			var position = _spawnPosition + new Vector3(
-				Random.Range(-_spawnOffsets.x, _spawnOffsets.x),
-				Random.Range(-_spawnOffsets.y, _spawnOffsets.y));
+			var position = _spawnPosition + Random.Range(-_spawnOffsets.x, _spawnOffsets.x) * Vector3.right;
 			_poolService.SpawnEnemy(position, AddScore);
 		}
 
