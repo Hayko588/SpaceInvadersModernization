@@ -49,17 +49,9 @@ namespace SpaceInvaders {
 			_gameplayUI.UpdateHealth(health);
 		}
 
-		private void SpawnExplosion(Vector3 position) {
-			_poolService.SpawnExplosion(position);
-		}
-
-		private void SpawnProjectile(ProjectileOwner owner, Vector3 position) {
-			_poolService.SpawnProjectile(owner, position);
-		}
-
 		private void OnPlayerDie() {
 			_running = false;
-			SpawnExplosion(_player.transform.position);
+			_poolService.SpawnExplosion(_player.transform.position);
 			Destroy(_player.gameObject);
 			GameOver();
 		}
@@ -73,7 +65,7 @@ namespace SpaceInvaders {
 
 		private void SpawnEnemy() {
 			var position = _spawnPosition + Random.Range(-_spawnOffsets.x, _spawnOffsets.x) * Vector3.right;
-			_poolService.SpawnEnemy(position, AddScore);
+			_poolService.SpawnEnemy(position);
 		}
 
 		private void AddScore(Enemy enemy) {

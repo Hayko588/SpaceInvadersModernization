@@ -5,12 +5,9 @@ using Zenject;
 
 namespace SpaceInvaders {
 	public class Explosion : MonoBehaviour {
-		public class Pool : MonoMemoryPool<Explosion> {
-			protected override void OnSpawned(Explosion item) {
-				item.Explode();
-			}
-			protected override void OnDespawned(Explosion item) {
-				item.Stop();
+		public class Pool : MonoMemoryPool<Vector3, Explosion> {
+			protected override void Reinitialize(Vector3 pos, Explosion item) {
+				item.Init(pos, Despawn);
 			}
 		}
 
@@ -22,12 +19,14 @@ namespace SpaceInvaders {
 		public void Init(Vector3 position, Action<Explosion> despawn) {
 			transform.position = position;
 			_despawn = despawn;
+			Explode();
 		}
 
 		private async void Explode() {
 			_particleSystem.Play();
 			await Task.Delay(_delay);
 			_despawn?.Invoke(this);
+			Stop();
 		}
 
 		private void Stop() {

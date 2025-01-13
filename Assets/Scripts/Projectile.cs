@@ -56,7 +56,7 @@ namespace SpaceInvaders {
 
 		private void Run() {
 			_tween = Tween.PositionY(transform, (20 * _direction).y, 20f / _speed, Ease.Linear);
-			_tween.OnComplete(() => _despawn?.Invoke(this));
+			//_tween.OnComplete(() => _despawn?.Invoke(this));
 		}
 
 		private void OnTriggerEnter(Collider other) {

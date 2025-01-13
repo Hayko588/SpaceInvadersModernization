@@ -10,24 +10,14 @@ namespace SpaceInvaders.Services {
 		[Inject] private readonly Explosion.Pool _explosionPool;
 
 		public void SpawnExplosion(Vector3 position) {
-			var ex = _explosionPool.Spawn();
-			ex.Init(position, DespawnExplosion);
-		}
-
-		public void DespawnExplosion(Explosion explosion) {
-			_explosionPool.Despawn(explosion);
+			_explosionPool.Spawn(position);
 		}
 
 		public void SpawnProjectile(ProjectileOwner owner, Vector3 position) {
-			var p = _projectilePool.Spawn(owner, position);
-			p.Init(owner, position, DespawnProjectile);
+			_projectilePool.Spawn(owner, position);
 		}
 
-		public void DespawnProjectile(Projectile projectile) {
-			_projectilePool.Despawn(projectile);
-		}
-
-		public void SpawnEnemy(Vector3 position, Action<Enemy> onDestroy) {
+		public void SpawnEnemy(Vector3 position) {
 			var e = _enemyPool.Spawn(position);
 			e.Init(this);
 		}
